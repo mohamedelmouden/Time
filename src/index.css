@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root{--bg:11 13 18;--bg2:18 21 29;--card:25 29 39;--tx:245 245 245;--tx2:146 152 165;--track:40 45 58;--line:255 255 255}
+:root.light{--bg:247 247 249;--bg2:238 239 243;--card:255 255 255;--tx:20 22 28;--tx2:100 106 120;--track:225 227 233;--line:0 0 0}
+html,body,#root{min-height:100%}
+body{background:rgb(var(--bg));color:rgb(var(--tx));font-family:'Tajawal',system-ui,sans-serif;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+@layer components{
+  .card{@apply rounded-3xl bg-card border border-line/5 p-4 shadow-lg shadow-black/10}
+  .inp{@apply w-full min-h-[44px] rounded-xl bg-bg2 border border-line/10 px-3 py-2 outline-none focus:border-flame}
+  .btn{@apply min-h-[44px] rounded-xl px-4 font-bold inline-flex items-center justify-center gap-2 active:scale-95 transition}
+  .btn-p{@apply btn bg-gradient-to-br from-flame to-gold text-[#0B0D12]}
+  .btn-g{@apply btn bg-bg2 border border-line/10}
+  .icon-b{@apply w-11 h-11 rounded-xl grid place-items-center bg-bg2 border border-line/10 active:scale-95 transition}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
