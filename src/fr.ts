@@ -1,5 +1,6 @@
 /** French translations. Keys are the Arabic source strings used in the UI. */
 export const FR: Record<string, string> = {
+  'تغيير اللغة': 'Changer de langue', 'المصاريف': 'Dépenses',
   'الرئيسية': 'Accueil', 'السجل': 'Historique', 'المواعيد': 'Événements', 'الإحصائيات': 'Statistiques',
   'احمِ وقتك، واحفظ شعلتك.': 'Protégez votre temps, gardez votre flamme.',
   'الرقم القياسي:': 'Record :', 'نقطة': 'pts', 'أيام من الانضباط': 'jours de discipline',
@@ -55,4 +56,19 @@ export const FR: Record<string, string> = {
   'خلال أقل من ساعة': "dans moins d'une heure",
   'اليوم المفتوح للتسجيل:': 'Jour à valider :',
   'التسجيل مفتوح من 22:00 إلى 08:00 فقط. إن لم تسجّل قبل 08:00 يُحتسب اليوم خسارة.': "L'enregistrement est ouvert uniquement de 22:00 à 08:00. Sans enregistrement avant 08:00, le jour compte comme perdu.",
+  'المصاريف اليومية': 'Dépenses du jour', 'اختر اليوم': 'Choisir le jour',
+  'إجمالي المصروف': 'Total dépensé', 'مصروف': 'dépense', 'مصروفات': 'dépenses', 'تعديل المصروف': 'Modifier la dépense',
+  'أضف مصروفاً': 'Ajouter une dépense', 'وصف المصروف': 'Description de la dépense',
+  'مثال: وجبة الغداء': 'Ex. : déjeuner', 'السعر': 'Prix', 'حفظ التعديل': 'Enregistrer la modification',
+  'أضف إلى اليوم': 'Ajouter à la journée', 'إلغاء التعديل': 'Annuler la modification',
+  'حذف المصروف؟': 'Supprimer cette dépense ?', 'تقرير اليوم PDF': 'Rapport du jour PDF',
+  'يجمع التقرير مصاريف اليوم ونتيجة التحدي والمهام. عند الطباعة اختر حفظ كملف PDF.': 'Le rapport réunit les dépenses du jour, le résultat du défi et les missions. Dans la fenêtre d’impression, choisissez Enregistrer au format PDF.',
+  'طباعة أو حفظ PDF': 'Imprimer ou enregistrer en PDF', 'دفتر يومي للإنفاق والانضباط': 'Carnet quotidien des dépenses et de la discipline',
+  'تقرير اليوم': 'Rapport du jour', 'عدد المصاريف': 'Nombre de dépenses', 'نتيجة التحدي': 'Résultat du défi',
+  'أكملت التحدي': 'Défi accompli', 'ضيعت الوقت': 'Temps perdu', 'لم تسجل النتيجة': 'Résultat non renseigné',
+  'تفاصيل المصاريف': 'Détail des dépenses', 'كل بند وسعره': 'Chaque article et son prix',
+  'رقم': 'N°', 'الوصف': 'Description', 'لا توجد مصاريف مسجلة لهذا اليوم.': 'Aucune dépense enregistrée pour ce jour.',
+  'الإجمالي': 'Total', 'الانضباط والتحدي': 'Discipline et défi', 'نتيجة اليوم': 'Résultat du jour',
+  'المهام اليومية': 'Missions quotidiennes', 'لا توجد مهام لهذا اليوم': 'Aucune mission ce jour',
+  'وقت أوضح، ومال أوعى.': 'Un temps mieux maîtrisé, un budget plus clair.', 'تقرير شخصي': 'Rapport personnel',
 };

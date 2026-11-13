@@ -14,3 +14,63 @@ body{background:rgb(var(--bg));color:rgb(var(--tx));font-family:'Tajawal',system
   .icon-b{@apply w-11 h-11 rounded-xl grid place-items-center bg-bg2 border border-line/10 active:scale-95 transition}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+@media screen and (max-width:390px){
+  .app-main .card{padding:.875rem}
+  .app-main .text-xs{font-size:.7rem}
+  .app-main .text-sm{font-size:.82rem}
+  .app-main .text-lg{font-size:1.05rem}
+  .app-main .text-xl{font-size:1.15rem}
+  .app-main .text-2xl{font-size:1.4rem}
+  .app-main .text-3xl{font-size:1.7rem}
+  .app-main .text-4xl{font-size:2rem}
+  .app-main .text-5xl{font-size:2.6rem}
+  .app-main .text-6xl{font-size:3.1rem}
+  .app-nav .nav-icon{width:20px;height:20px}
+  .app-main .section-icon{width:20px;height:20px}
+}
+
+.print-report{display:none}
+@media print{
+  @page{size:A4;margin:15mm}
+  html,body{min-height:0!important;background:#fff!important;color:#17202a!important;overflow:visible!important}
+  #root{display:none!important}
+  body>.print-report{display:block!important}
+  .print-report{width:100%;max-width:180mm;margin:0 auto;color:#17202a;font-family:'Tajawal',Tahoma,sans-serif;font-size:11pt;line-height:1.55;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .report-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 0 14px;border-bottom:3px solid #f28a35}
+  .report-brand{display:flex;align-items:center;gap:10px;color:#17202a}
+  .report-flame{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:#fff1df;color:#e85c20;font-size:24px;font-weight:700}
+  .report-brand strong{display:block;font-size:16pt;letter-spacing:1px;line-height:1.1}
+  .report-brand small,.report-heading small{display:block;color:#687386;font-size:8.5pt}
+  .report-heading{text-align:end;font-size:18pt;font-weight:700;line-height:1.2}
+  .report-heading small{margin-top:4px;font-weight:400}
+  .report-date{margin:14px 0 18px;color:#687386;font-size:11pt}
+  .report-summary{display:grid;grid-template-columns:1.3fr 1fr 1.4fr;gap:9px;margin-bottom:22px}
+  .report-stat{min-height:72px;padding:10px 12px;border:1px solid #e5e8ed;border-radius:12px;background:#fbfcfe}
+  .report-stat-total{border-color:#f5c28b;background:#fff8ef}
+  .report-stat small,.report-challenge-box small{display:block;margin-bottom:5px;color:#687386;font-size:8.5pt}
+  .report-stat strong{display:block;font-size:13pt;line-height:1.35}
+  .report-stat-total strong{color:#c85e1d;font-size:18pt}
+  .report-good{color:#18805c!important}.report-bad{color:#c74747!important}.report-muted{color:#687386!important}
+  .report-section{margin:20px 0;break-inside:auto}
+  .report-section-title{display:flex;align-items:center;gap:9px;margin-bottom:9px;break-after:avoid}
+  .report-section-title>span{display:grid;place-items:center;width:25px;height:25px;border-radius:8px;background:#fff1df;color:#d76e25;font-size:8pt;font-weight:700}
+  .report-section-title h2{margin:0;font-size:13pt}.report-section-title small{margin-inline-start:auto;color:#687386;font-size:8.5pt}
+  .report-table{width:100%;border-collapse:collapse;border:1px solid #e5e8ed;font-size:10pt}
+  .report-table thead{display:table-header-group;background:#fff3e3}
+  .report-table th,.report-table td{padding:8px 10px;border-bottom:1px solid #e8ebef;text-align:start}
+  .report-table th{color:#5c6573;font-size:8.5pt;font-weight:700}
+  .report-table tr{break-inside:avoid}
+  .report-table .report-amount{text-align:end;direction:ltr;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .report-empty{text-align:center!important;color:#687386;padding:18px!important}
+  .report-table tfoot td{border-top:2px solid #ef9a4c;border-bottom:0;background:#fff8ef;font-weight:700}
+  .report-challenge-box{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px;border:1px solid #e5e8ed;border-radius:12px;background:#fbfcfe;break-inside:avoid}
+  .report-challenge-box strong{font-size:11pt}
+  .report-task-list{list-style:none;margin:8px 0 0;padding:0}
+  .report-task-list li{display:flex;align-items:flex-start;gap:8px;padding:7px 2px;border-bottom:1px solid #edf0f3;break-inside:avoid}
+  .report-task-list li>span:nth-child(2){flex:1}
+  .report-task-list small{display:block;color:#687386;font-size:8.5pt}
+  .report-task-list b{font-size:8.5pt}
+  .report-footer{display:flex;justify-content:space-between;gap:12px;margin-top:26px;padding-top:9px;border-top:1px solid #dce1e7;color:#687386;font-size:8pt}
+  .report-footer span:first-child{color:#d76e25;font-weight:700;letter-spacing:1px}
+}

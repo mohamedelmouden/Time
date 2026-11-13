@@ -2,10 +2,11 @@ import { getLang, loc, tr } from './i18n';
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { addMonths, eachDayOfInterval, endOfMonth, format, getDay, parseISO, startOfMonth } from 'date-fns';
-import { BarChart3, CalendarClock, Check, ChevronLeft, ChevronRight, Download, Flame as FlameIcon, History, Home as HomeIcon, Pencil, Plus, Star, Target, Trash2, Upload } from 'lucide-react';
+import { BarChart3, CalendarClock, Check, ChevronLeft, ChevronRight, Download, Flame as FlameIcon, History, Home as HomeIcon, Pencil, Plus, Receipt, Star, Target, Trash2, Upload } from 'lucide-react';
 import { useApp } from './store';
 import { CAT, Flame, PRIO, Ring, Sheet, useNow } from './components';
 import { EventSheet, MissionSheet } from './forms';
+import { ExpensesPage } from './expenses';
 import { PTS, markableDay, daysText, deadline, leftMessage, points, streaks, DK } from './logic';
 import type { DailyMission, ImportantEvent } from './types';
 
@@ -194,20 +195,20 @@ export default function App() {
   }, [theme]);
   const openM = (m: DailyMission | null) => { setMEdit(m); setMOpen(true); };
   const openE = (e: ImportantEvent | null) => { setEEdit(e); setEOpen(true); };
-  const nav = [[HomeIcon, tr('الرئيسية')], [History, tr('السجل')], [CalendarClock, tr('المواعيد')], [BarChart3, tr('الإحصائيات')]] as const;
+  const nav = [[HomeIcon, tr('الرئيسية')], [History, tr('السجل')], [Receipt, tr('المصاريف')], [CalendarClock, tr('المواعيد')], [BarChart3, tr('الإحصائيات')]] as const;
   return (
-    <div className="mx-auto max-w-xl md:max-w-2xl px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-36">
+    <div className="app-shell mx-auto max-w-xl md:max-w-2xl px-3 sm:px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-36">
       <header className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2 text-2xl font-bold"><FlameIcon className="text-flame" fill="#FF8A32" />FLAME</div>
-        <div className="flex items-center gap-2"><button className="icon-b font-bold" aria-label={tr('Langue / اللغة')} onClick={() => s.setLang(s.data.settings.lang === 'ar' ? 'fr' : 'ar')}>{s.data.settings.lang === 'ar' ? 'FR' : tr('ع')}</button><div className="text-sm text-tx2 text-end"><div>{fd(s.today, 'EEEE d MMMM')}</div><div className="text-gold">{tr('احمِ وقتك، واحفظ شعلتك.')}</div></div></div>
+        <div className="flex items-center gap-2"><button className="icon-b font-bold" aria-label={tr('تغيير اللغة')} onClick={() => s.setLang(s.data.settings.lang === 'ar' ? 'fr' : 'ar')}>{s.data.settings.lang === 'ar' ? 'FR' : 'AR'}</button><div className="text-xs sm:text-sm text-tx2 text-end"><div>{fd(s.today, 'EEEE d MMMM')}</div><div className="text-gold">{tr('احمِ وقتك، واحفظ شعلتك.')}</div></div></div>
       </header>
-      <main>{tab === 0 && <Home editM={openM} newM={() => openM(null)} newE={() => openE(null)} />}{tab === 1 && <HistoryPage />}{tab === 2 && <EventsPage edit={openE} />}{tab === 3 && <StatsPage />}</main>
+      <main className="app-main">{tab === 0 && <Home editM={openM} newM={() => openM(null)} newE={() => openE(null)} />}{tab === 1 && <HistoryPage />}{tab === 2 && <ExpensesPage />}{tab === 3 && <EventsPage edit={openE} />}{tab === 4 && <StatsPage />}</main>
       <div className="fixed end-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] flex flex-col gap-3 z-30">
-        {tab === 0 && <button aria-label={tr('مهمة جديدة')} onClick={() => openM(null)} className="w-14 h-14 rounded-full bg-bg2 border border-flame text-flame grid place-items-center shadow-xl active:scale-95"><Target /></button>}
-        {(tab === 0 || tab === 2) && <button aria-label={tr('موعد جديد')} onClick={() => openE(null)} className="w-14 h-14 rounded-full bg-gradient-to-br from-flame to-gold text-[#0B0D12] grid place-items-center shadow-xl shadow-flame/30 active:scale-95"><Plus /></button>}
+        {tab === 0 && <button aria-label={tr('مهمة جديدة')} onClick={() => openM(null)} className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-bg2 border border-flame text-flame grid place-items-center shadow-xl active:scale-95"><Target className="w-5 h-5" /></button>}
+        {(tab === 0 || tab === 3) && <button aria-label={tr('موعد جديد')} onClick={() => openE(null)} className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-flame to-gold text-[#0B0D12] grid place-items-center shadow-xl shadow-flame/30 active:scale-95"><Plus className="w-5 h-5" /></button>}
       </div>
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-bg2/95 backdrop-blur border-t border-line/10 pb-[env(safe-area-inset-bottom)]">
-        <div className="mx-auto max-w-2xl grid grid-cols-4">{nav.map(([Icon, l], i) => <button key={l} onClick={() => setTab(i)} className={`min-h-[56px] flex flex-col items-center justify-center text-xs gap-1 ${tab === i ? 'text-flame' : 'text-tx2'}`}><Icon size={22} />{l}</button>)}</div>
+      <nav className="app-nav fixed bottom-0 inset-x-0 z-40 bg-bg2/95 backdrop-blur border-t border-line/10 pb-[env(safe-area-inset-bottom)]">
+        <div className="mx-auto max-w-2xl grid grid-cols-5">{nav.map(([Icon, l], i) => <button key={l} onClick={() => setTab(i)} className={`min-h-[56px] flex flex-col items-center justify-center text-[10px] sm:text-xs gap-1 ${tab === i ? 'text-flame' : 'text-tx2'}`}><Icon className="nav-icon" size={22} />{l}</button>)}</div>
       </nav>
       <MissionSheet open={mOpen} onClose={() => setMOpen(false)} edit={mEdit} />
       <EventSheet open={eOpen} onClose={() => setEOpen(false)} edit={eEdit} />

@@ -34,6 +34,19 @@ function useStore() {
       if (!day) return d;
       return { ...d, disciplineRecords: [...d.disciplineRecords.filter((r) => r.date !== day), { date: day, status }].sort((a, b) => a.date.localeCompare(b.date)) };
     }),
+    addExpense: (date: string, description: string, amount: number) => up((d, t) => {
+      const label = description.trim();
+      const rounded = Math.round(amount * 100) / 100;
+      if (!label || date > t || !Number.isFinite(amount) || rounded <= 0) return d;
+      return { ...d, expenseEntries: [...d.expenseEntries, { id: uid(), date, description: label, amount: rounded }] };
+    }),
+    updateExpense: (id: string, description: string, amount: number) => up((d, t) => {
+      const label = description.trim();
+      const rounded = Math.round(amount * 100) / 100;
+      if (!label || !Number.isFinite(amount) || rounded <= 0) return d;
+      return { ...d, expenseEntries: d.expenseEntries.map((e) => e.id === id && e.date <= t ? { ...e, description: label, amount: rounded } : e) };
+    }),
+    deleteExpense: (id: string) => up((d) => ({ ...d, expenseEntries: d.expenseEntries.filter((e) => e.id !== id) })),
     addMission: (date: string, tasks: Draft[]) => up((d, t) => {
       if (date <= t) return d;
       const ts = clean(tasks); if (!ts.length) return d;

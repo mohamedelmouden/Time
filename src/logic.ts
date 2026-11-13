@@ -5,11 +5,17 @@ import type { AppData, ImportantEvent } from './types';
 export const DK = 'yyyy-MM-dd';
 export const todayKey = () => format(new Date(), DK);
 export const uid = () => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
-export const effDay = (now = Date.now()) => format(new Date(now - 8 * 36e5), DK);
+const MARK_START_HOUR = 22;
+const AUTO_LOSS_HOUR = 8;
+/** Before 08:00, yesterday is still open; at 08:00 it is closed. */
+export const effDay = (now = Date.now()) => {
+  const date = new Date(now);
+  return format(date.getHours() < AUTO_LOSS_HOUR ? addDays(date, -1) : date, DK);
+};
 /** The day that can be validated right now: only between 22:00 and 08:00 (next morning). Otherwise null. */
 export function markableDay(now = new Date()) {
   const h = now.getHours();
-  return h >= 22 ? format(now, DK) : h < 8 ? format(addDays(now, -1), DK) : null;
+  return h >= MARK_START_HOUR ? format(now, DK) : h < AUTO_LOSS_HOUR ? format(addDays(now, -1), DK) : null;
 }
 export const PTS = { win: 10, lose: -10, allDone: 20 };
 

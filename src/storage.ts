@@ -2,7 +2,7 @@ import { format } from 'date-fns';
 import type { AppData } from './types';
 const KEY = 'flame:data';
 export const VERSION = 1;
-export const empty = (): AppData => ({ version: VERSION, disciplineRecords: [], dailyMissions: [], importantEvents: [], settings: { theme: 'dark', lang: 'ar', startDate: format(new Date(), 'yyyy-MM-dd') } });
+export const empty = (): AppData => ({ version: VERSION, disciplineRecords: [], expenseEntries: [], dailyMissions: [], importantEvents: [], settings: { theme: 'dark', lang: 'ar', startDate: format(new Date(), 'yyyy-MM-dd') } });
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const arr = (x: unknown): any[] => (Array.isArray(x) ? x : []);
 
@@ -13,6 +13,12 @@ export function normalize(raw: any): AppData | null {
   const recs = new Map<string, AppData['disciplineRecords'][number]>();
   for (const r of arr(raw.disciplineRecords)) if (r && DATE.test(r.date) && (r.status === 'success' || r.status === 'failure')) recs.set(r.date, { date: r.date, status: r.status, ...(r.auto ? { auto: true } : {}) });
   d.disciplineRecords = [...recs.values()].sort((a, b) => a.date.localeCompare(b.date));
+  const expenses = new Map<string, AppData['expenseEntries'][number]>();
+  for (const e of arr(raw.expenseEntries)) if (e && typeof e.id === 'string' && DATE.test(e.date) && typeof e.description === 'string' && e.description.trim() && typeof e.amount === 'number' && Number.isFinite(e.amount) && e.amount > 0) {
+    const amount = Math.round(e.amount * 100) / 100;
+    if (amount > 0) expenses.set(e.id, { id: e.id, date: e.date, description: e.description.trim(), amount });
+  }
+  d.expenseEntries = [...expenses.values()].sort((a, b) => a.date.localeCompare(b.date));
   const ms = new Map<string, any>();
   for (const m of arr(raw.dailyMissions)) if (m && m.id && DATE.test(m.scheduledDate) && Array.isArray(m.tasks)) {
     ms.set(m.id, { ...m, tasks: m.tasks.filter((t: any) => t && t.id && typeof t.title === 'string').map((t: any) => ({ ...t, completed: !!t.completed })), createdAt: m.createdAt || new Date().toISOString() });

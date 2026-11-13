@@ -22,7 +22,7 @@ export function Flame({ days }: { days: number }) {
   const gold = lv === 5;
   return (
     <div className="h-36 grid place-items-center">
-      <motion.svg viewBox="0 0 100 110" className="w-32 h-32" style={{ opacity: lv === 0 ? 0.5 : 1, filter: `drop-shadow(0 0 ${6 + lv * 5}px ${gold ? '#FFC15A' : '#FF8A32'}aa)` }}
+      <motion.svg viewBox="0 0 100 110" className="w-28 h-28 sm:w-32 sm:h-32" style={{ opacity: lv === 0 ? 0.5 : 1, filter: `drop-shadow(0 0 ${6 + lv * 5}px ${gold ? '#FFC15A' : '#FF8A32'}aa)` }}
         animate={{ scale: [sc, sc * 1.05, sc], y: [0, -2, 0] }} transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}>
         <defs>
           <linearGradient id="fo" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor={gold ? '#FF8A32' : '#E8501E'} /><stop offset="1" stopColor={gold ? '#FFC15A' : '#FF8A32'} /></linearGradient>
