@@ -1,6 +1,6 @@
 import { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { addDays, format, parseISO } from 'date-fns';
-import type { AppData, Category, DailyMission, ImportantEvent, Priority, Theme } from './types';
+import type { AccentColor, AppData, Category, DailyMission, ImportantEvent, Priority, Theme } from './types';
 import { empty, load, normalize, save } from './storage';
 import { applyLang } from './i18n';
 import { DK, effDay, markableDay, sync, todayKey, uid } from './logic';
@@ -71,6 +71,7 @@ function useStore() {
     deleteEvent: (id: string) => up((d) => ({ ...d, importantEvents: d.importantEvents.filter((x) => x.id !== id) })),
     completeEvent: (id: string) => up((d) => ({ ...d, importantEvents: d.importantEvents.map((x) => (x.id === id && x.status === 'upcoming' ? { ...x, status: 'completed' as const, completedAt: new Date().toISOString() } : x)) })),
     setTheme: (theme: Theme) => up((d) => ({ ...d, settings: { ...d.settings, theme } })),
+    setAccentColor: (accentColor: AccentColor) => up((d) => ({ ...d, settings: { ...d.settings, accentColor } })),
     importJson: (text: string) => { try { const n = normalize(JSON.parse(text)); if (!n) return false; setData(sync(n, todayKey())); return true; } catch { return false; } },
     setLang: (lang: 'ar' | 'fr') => up((d) => ({ ...d, settings: { ...d.settings, lang } })),
     reset: () => setData((d) => ({ ...empty(), settings: { ...d.settings, startDate: todayKey() } })),

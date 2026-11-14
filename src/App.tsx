@@ -1,17 +1,28 @@
 import { getLang, loc, tr } from './i18n';
-import { useEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { addMonths, eachDayOfInterval, endOfMonth, format, getDay, parseISO, startOfMonth } from 'date-fns';
-import { BarChart3, CalendarClock, Check, ChevronLeft, ChevronRight, Download, Flame as FlameIcon, History, Home as HomeIcon, Pencil, Plus, Receipt, Star, Target, Trash2, Upload } from 'lucide-react';
+import { BarChart3, CalendarClock, CalendarPlus, Check, ChevronLeft, ChevronRight, Database, Download, Flame as FlameIcon, History, Home as HomeIcon, ListChecks, Palette, Pencil, Plus, Receipt, Star, Target, Trash2, Upload } from 'lucide-react';
 import { useApp } from './store';
 import { CAT, Flame, PRIO, Ring, Sheet, useNow } from './components';
 import { EventSheet, MissionSheet } from './forms';
 import { ExpensesPage } from './expenses';
+import { isWeeklyReminderTime, WeeklyStats } from './weekly';
 import { PTS, markableDay, daysText, deadline, leftMessage, points, streaks, DK } from './logic';
-import type { DailyMission, ImportantEvent } from './types';
+import type { AccentColor, DailyMission, ImportantEvent } from './types';
 
 const fd = (d: string, f = 'EEEE d MMMM') => format(parseISO(d), f, { locale: loc() });
 const WIN: string[] = ['أحسنت! شعلتك تكبر.', 'انضباطك يصنع الفرق.', 'يوم آخر في رصيدك. استمر ولا تستسلم.'];
+const ACCENTS: { id: AccentColor; label: string; swatch: string; highlight: string }[] = [
+  { id: 'orange', label: 'برتقالي', swatch: '#FF8A32', highlight: '#FFC15A' },
+  { id: 'yellow', label: 'أصفر', swatch: '#CA8A04', highlight: '#FACC15' },
+  { id: 'pink', label: 'وردي', swatch: '#DB2777', highlight: '#F472B6' },
+  { id: 'red', label: 'أحمر', swatch: '#DC2626', highlight: '#F87171' },
+  { id: 'blue', label: 'أزرق', swatch: '#2563EB', highlight: '#60A5FA' },
+  { id: 'purple', label: 'بنفسجي', swatch: '#9333EA', highlight: '#C084FC' },
+  { id: 'green', label: 'أخضر', swatch: '#16A34A', highlight: '#4ADE80' },
+  { id: 'cyan', label: 'سماوي', swatch: '#0891B2', highlight: '#67E8F9' },
+];
 const pct = (m: DailyMission) => (m.tasks.length ? Math.round((m.tasks.filter((t) => t.completed).length / m.tasks.length) * 100) : 0);
 const evState = (e: ImportantEvent, now: number) => {
   if (e.status === 'completed') return tr('اكتمل');
@@ -35,8 +46,8 @@ function MissionCard({ m, onEdit }: { m: DailyMission; onEdit: (m: DailyMission)
   );
 }
 
-function Home({ editM, newM, newE }: { editM: (m: DailyMission) => void; newM: () => void; newE: () => void }) {
-  const s = useApp(); const { data, today } = s; const now = useNow(60000);
+function Home({ editM, newM, newE, onWeeklyReport }: { editM: (m: DailyMission) => void; newM: () => void; newE: () => void; onWeeklyReport: () => void }) {
+  const s = useApp(); const { data, today } = s; const now = useNow(15000);
   const { cur, best } = streaks(data.disciplineRecords, s.eff);
   const vd = markableDay(new Date(now));
   const rec = data.disciplineRecords.find((r) => r.date === (vd ?? today));
@@ -44,6 +55,7 @@ function Home({ editM, newM, newE }: { editM: (m: DailyMission) => void; newM: (
   const tm = data.dailyMissions.find((m) => m.status === 'active');
   const ups = data.dailyMissions.filter((m) => m.status === 'upcoming').sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate));
   const evs = liveEvents(data.importantEvents); const near = evs[0];
+  const weeklyReminder = isWeeklyReminderTime(new Date(now));
   const choose = (st: 'success' | 'failure') => {
     if (rec && !confirm(tr('تعديل تسجيل اليوم؟'))) return;
     s.validate(st); setEditing(false);
@@ -53,6 +65,11 @@ function Home({ editM, newM, newE }: { editM: (m: DailyMission) => void; newM: (
   const done = tm && tm.tasks.length > 0 && tm.tasks.every((t) => t.completed);
   return (
     <div className="space-y-4">
+      {weeklyReminder && <section className="card border-flame/30 bg-gradient-to-br from-flame/10 to-gold/5">
+        <div className="font-bold">{tr('لا تنسَ تحصيل هذا الأسبوع')}</div>
+        <p className="text-sm text-tx2 mt-1">{tr('أصبح تقرير الأسبوع جاهزاً. احفظ مصاريفك ومهامك المنجزة في PDF.')}</p>
+        <button className="btn-p w-full mt-3" onClick={onWeeklyReport}><Download size={16} />{tr('تحميل التقرير الأسبوعي')}</button>
+      </section>}
       <section className="card text-center">
         <div className="flex justify-between text-sm text-tx2"><span className="inline-flex items-center gap-1 text-gold font-bold"><Star size={16} />{points(data)} {tr('نقطة')}</span><span>{tr('الرقم القياسي:')} {best}</span></div>
         <Flame days={cur} />
@@ -75,7 +92,7 @@ function Home({ editM, newM, newE }: { editM: (m: DailyMission) => void; newM: (
         <h2 className="font-bold mb-2 flex items-center gap-2"><Target size={18} className="text-flame" />{tr('مهمتي اليوم')}</h2>
         {tm ? (<>
           <div className="flex justify-between text-sm text-tx2 mb-1"><span>{tm.tasks.filter((t) => t.completed).length} / {tm.tasks.length} {tr('اكتملت')}</span><span>{pct(tm)}%</span></div>
-          <div className="h-3 rounded-full bg-track overflow-hidden"><motion.div className={`h-full rounded-full ${done ? 'bg-gold' : 'bg-flame'}`} animate={{ width: `${pct(tm)}%` }} style={done ? { boxShadow: '0 0 14px #FFC15A' } : undefined} /></div>
+          <div className="h-3 rounded-full bg-track overflow-hidden"><motion.div className={`h-full rounded-full ${done ? 'bg-gold' : 'bg-flame'}`} animate={{ width: `${pct(tm)}%` }} style={done ? { boxShadow: '0 0 14px rgb(var(--gold))' } : undefined} /></div>
           <ul className="mt-3 space-y-2">{tm.tasks.map((t) => (
             <li key={t.id}><button onClick={() => s.toggleTask(tm.id, t.id)} className="w-full min-h-[44px] flex items-start gap-3 text-start rounded-xl bg-bg2 p-3">
               <span className={`mt-0.5 w-6 h-6 shrink-0 rounded-lg border-2 grid place-items-center ${t.completed ? 'bg-ok border-ok text-[#0B0D12]' : 'border-tx2'}`}>{t.completed && <Check size={16} />}</span>
@@ -169,16 +186,43 @@ function StatsPage() {
   const imp = (f?: File) => { if (!f) return; const r = new FileReader(); r.onload = () => { if (confirm(tr('سيتم استبدال بياناتك الحالية. متابعة؟'))) alert(s.importJson(String(r.result)) ? tr('تم الاستيراد') : tr('ملف غير صالح')); }; r.readAsText(f); };
   return (
     <div className="space-y-4"><h1 className="text-xl font-bold">{tr('الإحصائيات')}</h1>
+      <WeeklyStats />
       <div className="card text-center"><div className="text-sm text-tx2">{tr('النقاط التراكمية')}</div><div className="text-5xl font-bold text-gold">{points(s.data)}</div>
         <div className="text-xs text-tx2 mt-2">+{PTS.win} {tr('لكل يوم انتصار')} · +{PTS.allDone} {tr('عند إتمام كل مهام اليوم')} · {PTS.lose} {tr('عند الخسارة')}</div></div>
       <div className="grid grid-cols-2 gap-3">{stats.map(([l, v]) => <div key={l} className="card text-center"><div className="text-3xl font-bold">{v}</div><div className="text-sm text-tx2">{l}</div></div>)}</div>
-      <div className="card space-y-3"><h2 className="font-bold">{tr('الإعدادات')}</h2>
-        <div className="grid grid-cols-3 gap-2">{([['dark', tr('داكن')], ['light', tr('فاتح')], ['system', tr('النظام')]] as const).map(([k, l]) => <button key={k} onClick={() => s.setTheme(k)} className={`btn ${s.data.settings.theme === k ? 'bg-flame text-[#0B0D12]' : 'bg-bg2'}`}>{l}</button>)}</div>
-        <div className="grid grid-cols-2 gap-2"><button className="btn-g" onClick={exp}><Download size={16} />{tr('تصدير')} JSON</button><button className="btn-g" onClick={() => file.current?.click()}><Upload size={16} />{tr('استيراد')} JSON</button></div>
+      <h2 className="text-lg font-bold pt-2">{tr('الإعدادات')}</h2>
+      <section className="card space-y-4">
+        <h2 className="font-bold flex items-center gap-2"><Palette size={18} className="text-flame" />{tr('المظهر والتخصيص')}</h2>
+        <div className="space-y-2">
+          <h3 className="text-sm font-bold">{tr('سمة الواجهة')}</h3>
+          <div className="grid grid-cols-3 gap-2">{([['dark', tr('داكن')], ['light', tr('فاتح')], ['system', tr('النظام')]] as const).map(([k, label]) => <button key={k} aria-pressed={s.data.settings.theme === k} onClick={() => s.setTheme(k)} className={`btn px-2 ${s.data.settings.theme === k ? 'bg-flame text-[#0B0D12]' : 'bg-bg2 border border-line/10'}`}>{label}</button>)}</div>
+        </div>
+        <div className="space-y-2 border-t border-line/10 pt-3">
+          <div><h3 className="text-sm font-bold">{tr('لون الموقع')}</h3><p className="text-xs text-tx2">{tr('اختر لون التمييز الذي تفضله.')}</p></div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">{ACCENTS.map((accent) => {
+            const selected = s.data.settings.accentColor === accent.id;
+            return <button key={accent.id} aria-label={tr(accent.label)} aria-pressed={selected} title={tr(accent.label)} onClick={() => s.setAccentColor(accent.id)} className={`min-h-11 rounded-xl bg-bg2 border px-3 flex items-center gap-2 text-sm font-bold transition active:scale-95 ${selected ? 'border-flame' : 'border-line/10'}`} style={selected ? { borderColor: accent.swatch, boxShadow: `0 0 0 1px ${accent.swatch}55` } : undefined}>
+              <span className="w-5 h-5 shrink-0 rounded-full border border-white/20" style={{ background: `linear-gradient(135deg, ${accent.swatch}, ${accent.highlight})` }} />
+              <span className="flex-1 text-start">{tr(accent.label)}</span>{selected && <Check size={15} className="shrink-0" />}
+            </button>;
+          })}</div>
+          <p className="text-xs text-tx2">{tr('البرتقالي هو اللون الافتراضي.')}</p>
+        </div>
+      </section>
+
+      <section className="card space-y-3">
+        <div><h2 className="font-bold flex items-center gap-2"><Database size={18} className="text-flame" />{tr('البيانات والنسخ الاحتياطي')}</h2><p className="text-xs text-tx2 mt-1">{tr('احفظ نسخة من بياناتك أو استعد نسخة سابقة.')}</p></div>
+        <div className="grid grid-cols-2 gap-2"><button className="btn-g px-2" onClick={exp}><Download size={16} />{tr('تصدير')} JSON</button><button className="btn-g px-2" onClick={() => file.current?.click()}><Upload size={16} />{tr('استيراد')} JSON</button></div>
         <input ref={file} type="file" accept="application/json" hidden onChange={(e) => { imp(e.target.files?.[0]); e.target.value = ''; }} />
-        <button className="btn-g w-full text-bad" onClick={() => setReset(true)}>{tr('مسح كل البيانات')}</button>
-        <p className="text-xs text-tx2">{tr('بياناتك محفوظة في هذا المتصفح وهذا الجهاز فقط، ولا توجد مزامنة بين الهاتف والحاسوب. استخدم التصدير والاستيراد لنقلها.')}</p></div>
-      <Sheet open={reset} onClose={() => setReset(false)} title={tr('مسح كل البيانات؟')}><p className="text-tx2 mb-4">{tr('سيتم حذف الانضباط والمهام والمواعيد نهائياً. صدّر نسخة احتياطية أولاً.')}</p><div className="grid grid-cols-2 gap-2"><button className="btn-g" onClick={() => setReset(false)}>{tr('إلغاء')}</button><button className="btn bg-bad text-white" onClick={() => { s.reset(); setReset(false); }}>{tr('نعم، امسح')}</button></div></Sheet>
+        <p className="text-xs text-tx2">{tr('بياناتك محفوظة في هذا المتصفح وهذا الجهاز فقط، ولا توجد مزامنة بين الهاتف والحاسوب. استخدم التصدير والاستيراد لنقلها.')}</p>
+      </section>
+
+      <section className="card border border-bad/20 space-y-3">
+        <h2 className="font-bold flex items-center gap-2 text-bad"><Trash2 size={17} />{tr('إدارة البيانات')}</h2>
+        <p className="text-sm text-tx2">{tr('سيحذف هذا الإجراء الانضباط والمهام والمصاريف والمواعيد من هذا الجهاز.')}</p>
+        <button className="btn-g w-full text-bad border-bad/20" onClick={() => setReset(true)}>{tr('مسح كل البيانات')}</button>
+      </section>
+      <Sheet open={reset} onClose={() => setReset(false)} title={tr('مسح كل البيانات؟')}><p className="text-tx2 mb-4">{tr('سيتم حذف الانضباط والمهام والمصاريف والمواعيد نهائياً. صدّر نسخة احتياطية أولاً.')}</p><div className="grid grid-cols-2 gap-2"><button className="btn-g" onClick={() => setReset(false)}>{tr('إلغاء')}</button><button className="btn bg-bad text-white" onClick={() => { s.reset(); setReset(false); }}>{tr('نعم، امسح')}</button></div></Sheet>
     </div>
   );
 }
@@ -188,24 +232,31 @@ export default function App() {
   const [mOpen, setMOpen] = useState(false); const [mEdit, setMEdit] = useState<DailyMission | null>(null);
   const [eOpen, setEOpen] = useState(false); const [eEdit, setEEdit] = useState<ImportantEvent | null>(null);
   const theme = s.data.settings.theme;
-  useEffect(() => {
+  const accentColor = s.data.settings.accentColor;
+  const accentHex = ACCENTS.find((accent) => accent.id === accentColor)?.swatch ?? ACCENTS[0].swatch;
+  useLayoutEffect(() => {
     const mq = matchMedia('(prefers-color-scheme: light)');
-    const apply = () => document.documentElement.classList.toggle('light', theme === 'light' || (theme === 'system' && mq.matches));
+    const apply = () => {
+      document.documentElement.classList.toggle('light', theme === 'light' || (theme === 'system' && mq.matches));
+      document.documentElement.dataset.accent = accentColor;
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) metaTheme.setAttribute('content', accentHex);
+    };
     apply(); mq.addEventListener('change', apply); return () => mq.removeEventListener('change', apply);
-  }, [theme]);
+  }, [theme, accentColor, accentHex]);
   const openM = (m: DailyMission | null) => { setMEdit(m); setMOpen(true); };
   const openE = (e: ImportantEvent | null) => { setEEdit(e); setEOpen(true); };
   const nav = [[HomeIcon, tr('الرئيسية')], [History, tr('السجل')], [Receipt, tr('المصاريف')], [CalendarClock, tr('المواعيد')], [BarChart3, tr('الإحصائيات')]] as const;
   return (
     <div className="app-shell mx-auto max-w-xl md:max-w-2xl px-3 sm:px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-36">
       <header className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 text-2xl font-bold"><FlameIcon className="text-flame" fill="#FF8A32" />FLAME</div>
+        <div className="flex items-center gap-2 text-2xl font-bold"><FlameIcon className="text-[#FF8A32]" size={21} fill="#FF8A32" />FLAME</div>
         <div className="flex items-center gap-2"><button className="icon-b font-bold" aria-label={tr('تغيير اللغة')} onClick={() => s.setLang(s.data.settings.lang === 'ar' ? 'fr' : 'ar')}>{s.data.settings.lang === 'ar' ? 'FR' : 'AR'}</button><div className="text-xs sm:text-sm text-tx2 text-end"><div>{fd(s.today, 'EEEE d MMMM')}</div><div className="text-gold">{tr('احمِ وقتك، واحفظ شعلتك.')}</div></div></div>
       </header>
-      <main className="app-main">{tab === 0 && <Home editM={openM} newM={() => openM(null)} newE={() => openE(null)} />}{tab === 1 && <HistoryPage />}{tab === 2 && <ExpensesPage />}{tab === 3 && <EventsPage edit={openE} />}{tab === 4 && <StatsPage />}</main>
+      <main className="app-main">{tab === 0 && <Home editM={openM} newM={() => openM(null)} newE={() => openE(null)} onWeeklyReport={() => setTab(4)} />}{tab === 1 && <HistoryPage />}{tab === 2 && <ExpensesPage />}{tab === 3 && <EventsPage edit={openE} />}{tab === 4 && <StatsPage />}</main>
       <div className="fixed end-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] flex flex-col gap-3 z-30">
-        {tab === 0 && <button aria-label={tr('مهمة جديدة')} onClick={() => openM(null)} className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-bg2 border border-flame text-flame grid place-items-center shadow-xl active:scale-95"><Target className="w-5 h-5" /></button>}
-        {(tab === 0 || tab === 3) && <button aria-label={tr('موعد جديد')} onClick={() => openE(null)} className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-flame to-gold text-[#0B0D12] grid place-items-center shadow-xl shadow-flame/30 active:scale-95"><Plus className="w-5 h-5" /></button>}
+        {tab === 0 && <button aria-label={tr('مهمة جديدة')} onClick={() => openM(null)} className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-bg2 via-bg2 to-card border border-flame/40 text-gold grid place-items-center shadow-xl shadow-flame/10 active:scale-95 transition"><ListChecks className="w-4 h-4" /></button>}
+        {(tab === 0 || tab === 3) && <button aria-label={tr('موعد جديد')} onClick={() => openE(null)} className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-gold via-[#FFB84A] to-flame text-[#0B0D12] grid place-items-center shadow-xl shadow-flame/35 ring-1 ring-gold/30 active:scale-95 transition"><CalendarPlus className="w-4 h-4" /></button>}
       </div>
       <nav className="app-nav fixed bottom-0 inset-x-0 z-40 bg-bg2/95 backdrop-blur border-t border-line/10 pb-[env(safe-area-inset-bottom)]">
         <div className="mx-auto max-w-2xl grid grid-cols-5">{nav.map(([Icon, l], i) => <button key={l} onClick={() => setTab(i)} className={`min-h-[56px] flex flex-col items-center justify-center text-[10px] sm:text-xs gap-1 ${tab === i ? 'text-flame' : 'text-tx2'}`}><Icon className="nav-icon" size={22} />{l}</button>)}</div>
