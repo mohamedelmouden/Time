@@ -31,6 +31,17 @@ class StartupBoundary extends Component<{ children: ReactNode }, { hasError: boo
 
 createRoot(document.getElementById('root')!).render(<StartupBoundary><Provider><App /></Provider></StartupBoundary>);
 
+// Recover once from a deployment that replaced a cached JavaScript chunk.
+window.addEventListener('vite:preloadError', (event) => {
+  event.preventDefault();
+  try {
+    if (sessionStorage.getItem('flame:preload-retry')) return;
+    sessionStorage.setItem('flame:preload-retry', '1');
+  } catch { /* storage may be unavailable */ }
+  window.location.reload();
+});
+window.addEventListener('load', () => { try { sessionStorage.removeItem('flame:preload-retry'); } catch { /* storage may be unavailable */ } }, { once: true });
+
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }

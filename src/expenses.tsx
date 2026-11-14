@@ -13,7 +13,7 @@ const challengeLabel = (record?: DisciplineRecord) => record?.status === 'succes
 function DailyReport({ date, expenses, total, record, mission }: { date: string; expenses: ExpenseEntry[]; total: number; record?: DisciplineRecord; mission?: DailyMission }) {
   const completed = mission?.tasks.filter((task) => task.completed).length ?? 0;
   return (
-    <article className="print-report" dir={getLang() === 'ar' ? 'rtl' : 'ltr'} lang={getLang()}>
+    <article className="print-report daily-print-report" dir={getLang() === 'ar' ? 'rtl' : 'ltr'} lang={getLang()}>
       <header className="report-header">
         <div className="report-brand"><span className="report-flame">✦</span><span><strong>FLAME</strong><small>{tr('دفتر يومي للإنفاق والانضباط')}</small></span></div>
         <div className="report-heading"><div>{tr('تقرير اليوم')}</div><small>FLAME · {date}</small></div>
@@ -75,8 +75,8 @@ export function ExpensesPage() {
   const printReport = () => {
     const title = document.title;
     document.title = `FLAME-${date}`;
-    window.print();
-    document.title = title;
+    document.body.dataset.printReport = 'daily';
+    try { window.print(); } finally { delete document.body.dataset.printReport; document.title = title; }
   };
 
   return <>

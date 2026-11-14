@@ -5,7 +5,7 @@ import { addMonths, eachDayOfInterval, endOfMonth, format, getDay, parseISO, sta
 import { BarChart3, CalendarClock, CalendarPlus, Check, ChevronLeft, ChevronRight, Database, Download, Flame as FlameIcon, History, Home as HomeIcon, ListChecks, Palette, Pencil, Plus, Receipt, Star, Target, Trash2, Upload } from 'lucide-react';
 import { useApp } from './store';
 import { CAT, Flame, PRIO, Ring, Sheet, useNow } from './components';
-import { EventSheet, MissionSheet } from './forms';
+import { EventSheet, MissionSheet, TodayTaskSheet } from './forms';
 import { ExpensesPage } from './expenses';
 import { isWeeklyReminderTime, WeeklyStats } from './weekly';
 import { PTS, markableDay, daysText, deadline, leftMessage, points, streaks, DK } from './logic';
@@ -51,7 +51,7 @@ function Home({ editM, newM, newE, onWeeklyReport }: { editM: (m: DailyMission) 
   const { cur, best } = streaks(data.disciplineRecords, s.eff);
   const vd = markableDay(new Date(now));
   const rec = data.disciplineRecords.find((r) => r.date === (vd ?? today));
-  const [editing, setEditing] = useState(false); const [msg, setMsg] = useState('');
+  const [editing, setEditing] = useState(false); const [msg, setMsg] = useState(''); const [todayTaskOpen, setTodayTaskOpen] = useState(false);
   const tm = data.dailyMissions.find((m) => m.status === 'active');
   const ups = data.dailyMissions.filter((m) => m.status === 'upcoming').sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate));
   const evs = liveEvents(data.importantEvents); const near = evs[0];
@@ -99,6 +99,7 @@ function Home({ editM, newM, newE, onWeeklyReport }: { editM: (m: DailyMission) 
               <span><span className={t.completed ? 'line-through text-tx2' : ''}>{t.title}</span>{t.description && <span className="block text-xs text-tx2">{t.description}</span>}</span></button></li>))}</ul>
           <AnimatePresence>{done && <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-3 text-center font-bold text-gold">🔥 {tr('أحسنت! لقد أوفيت بوعدك لنفسك.')} (+{PTS.allDone} {tr('نقطة')})</motion.div>}</AnimatePresence>
         </>) : <p className="text-tx2 text-sm">{tr('لا توجد مهام لهذا اليوم، استعد لمهمتك القادمة.')}</p>}
+        <button className="btn-g w-full mt-3" onClick={() => setTodayTaskOpen(true)}><Plus size={16} />{tr('أضف مهمة أنجزتها اليوم')}</button>
       </section>
 
       <section className="card">
@@ -118,6 +119,7 @@ function Home({ editM, newM, newE, onWeeklyReport }: { editM: (m: DailyMission) 
         <div className="flex justify-between items-center mb-2"><h2 className="font-bold">{tr('مهام الغد والأيام القادمة')}</h2><button className="btn-g" onClick={newM}><Plus size={16} />{tr('مهمة')}</button></div>
         <div className="space-y-3">{ups.length ? ups.map((m) => <MissionCard key={m.id} m={m} onEdit={editM} />) : <p className="text-tx2 text-sm">{tr('حضّر مهام الغد اليوم، وأوفِ بها غداً.')}</p>}</div>
       </section>
+      <TodayTaskSheet open={todayTaskOpen} onClose={() => setTodayTaskOpen(false)} />
     </div>
   );
 }
@@ -235,14 +237,17 @@ export default function App() {
   const accentColor = s.data.settings.accentColor;
   const accentHex = ACCENTS.find((accent) => accent.id === accentColor)?.swatch ?? ACCENTS[0].swatch;
   useLayoutEffect(() => {
-    const mq = matchMedia('(prefers-color-scheme: light)');
+    const mq = window.matchMedia?.('(prefers-color-scheme: light)');
     const apply = () => {
-      document.documentElement.classList.toggle('light', theme === 'light' || (theme === 'system' && mq.matches));
+      document.documentElement.classList.toggle('light', theme === 'light' || (theme === 'system' && !!mq?.matches));
       document.documentElement.dataset.accent = accentColor;
       const metaTheme = document.querySelector('meta[name="theme-color"]');
       if (metaTheme) metaTheme.setAttribute('content', accentHex);
     };
-    apply(); mq.addEventListener('change', apply); return () => mq.removeEventListener('change', apply);
+    apply();
+    if (!mq) return;
+    if (typeof mq.addEventListener === 'function') { mq.addEventListener('change', apply); return () => mq.removeEventListener('change', apply); }
+    if (typeof mq.addListener === 'function') { mq.addListener(apply); return () => mq.removeListener(apply); }
   }, [theme, accentColor, accentHex]);
   const openM = (m: DailyMission | null) => { setMEdit(m); setMOpen(true); };
   const openE = (e: ImportantEvent | null) => { setEEdit(e); setEOpen(true); };

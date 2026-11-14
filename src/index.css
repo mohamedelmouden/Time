@@ -46,7 +46,8 @@ body{background:rgb(var(--bg));color:rgb(var(--tx));font-family:'Tajawal',system
   @page{size:A4;margin:15mm}
   html,body{min-height:0!important;background:#fff!important;color:#17202a!important;overflow:visible!important}
   #root{display:none!important}
-  body>.print-report{display:block!important}
+  body>.print-report{display:none!important}
+  body[data-print-report="daily"]>.daily-print-report,body[data-print-report="weekly"]>.weekly-print-report,body[data-print-report="expenses"]>.expense-only-print-report{display:block!important}
   .print-report{width:100%;max-width:180mm;margin:0 auto;color:#17202a;font-family:'Tajawal',Tahoma,sans-serif;font-size:11pt;line-height:1.55;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .report-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 0 14px;border-bottom:3px solid rgb(var(--flame))}
   .report-brand{display:flex;align-items:center;gap:10px;color:#17202a}
@@ -57,7 +58,7 @@ body{background:rgb(var(--bg));color:rgb(var(--tx));font-family:'Tajawal',system
   .report-heading small{margin-top:4px;font-weight:400}
   .report-date{margin:14px 0 18px;color:#687386;font-size:11pt}
   .report-summary{display:grid;grid-template-columns:1.3fr 1fr 1.4fr;gap:9px;margin-bottom:22px}
-  .weekly-print-report .report-summary{grid-template-columns:repeat(2,1fr)}
+  .weekly-print-report .report-summary,.expense-only-print-report .report-summary{grid-template-columns:repeat(2,1fr)}
   .report-stat{min-height:72px;padding:10px 12px;border:1px solid #e5e8ed;border-radius:12px;background:#fbfcfe}
   .report-stat-total{border-color:color-mix(in srgb,rgb(var(--flame)) 45%,white);background:color-mix(in srgb,rgb(var(--gold)) 12%,white)}
   .report-stat small,.report-challenge-box small{display:block;margin-bottom:5px;color:#687386;font-size:8.5pt}

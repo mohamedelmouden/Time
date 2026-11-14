@@ -53,6 +53,31 @@ function WeeklyReport({ start, end, expenses, missions, completedTasks, totalTas
   );
 }
 
+function ExpenseOnlyReport({ start, end, expenses, totalSpent }: { start: string; end: string; expenses: ExpenseEntry[]; totalSpent: number }) {
+  return (
+    <article className="print-report expense-only-print-report" dir={getLang() === 'ar' ? 'rtl' : 'ltr'} lang={getLang()}>
+      <header className="report-header">
+        <div className="report-brand"><span className="report-flame">✦</span><span><strong>FLAME</strong><small>{tr('تقرير المصاريف فقط')}</small></span></div>
+        <div className="report-heading"><div>{tr('تقرير المصاريف الأسبوعي')}</div><small>FLAME · {start} — {end}</small></div>
+      </header>
+      <div className="report-date">{dateLabel(start, 'd MMMM yyyy')} — {dateLabel(end, 'd MMMM yyyy')}</div>
+      <section className="report-summary">
+        <div className="report-stat report-stat-total"><small>{tr('إجمالي المصروف')}</small><strong>{money(totalSpent)}</strong></div>
+        <div className="report-stat"><small>{tr('عدد المصاريف')}</small><strong>{expenses.length}</strong></div>
+      </section>
+      <section className="report-section">
+        <div className="report-section-title"><span>01</span><h2>{tr('تفاصيل المصاريف')}</h2><small>{tr('كل بند وسعره')}</small></div>
+        <table className="report-table">
+          <thead><tr><th>{tr('التاريخ')}</th><th>{tr('الوصف')}</th><th>{tr('السعر')} · MAD</th></tr></thead>
+          <tbody>{expenses.length ? expenses.map((expense) => <tr key={expense.id}><td>{dateLabel(expense.date, 'EEE d MMM')}</td><td>{expense.description}</td><td className="report-amount">{money(expense.amount)}</td></tr>) : <tr><td colSpan={3} className="report-empty">{tr('لا توجد مصاريف مسجلة لهذا الأسبوع.')}</td></tr>}</tbody>
+          <tfoot><tr><td colSpan={2}>{tr('الإجمالي')}</td><td className="report-amount">{money(totalSpent)}</td></tr></tfoot>
+        </table>
+      </section>
+      <footer className="report-footer"><span>FLAME</span><span>{tr('وقت أوضح، ومال أوعى.')}</span><span>{tr('تقرير شخصي')}</span></footer>
+    </article>
+  );
+}
+
 export function WeeklyStats() {
   const s = useApp();
   const [weekStart, setWeekStart] = useState(() => key(startOfWeek(parseISO(s.today), { weekStartsOn: 1 })));
@@ -70,11 +95,11 @@ export function WeeklyStats() {
   const totalTasks = missions.reduce((sum, mission) => sum + mission.tasks.length, 0);
   const successfulDays = records.filter((record) => record.status === 'success').length;
   const failedDays = records.filter((record) => record.status === 'failure').length;
-  const printReport = () => {
+  const printReport = (report: 'weekly' | 'expenses') => {
     const title = document.title;
-    document.title = `FLAME-week-${startKey}`;
-    window.print();
-    document.title = title;
+    document.title = `FLAME-${report === 'expenses' ? 'expenses-' : 'week-'}${startKey}`;
+    document.body.dataset.printReport = report;
+    try { window.print(); } finally { delete document.body.dataset.printReport; document.title = title; }
   };
 
   return <>
@@ -91,10 +116,13 @@ export function WeeklyStats() {
         <div className="rounded-2xl bg-bg2 p-3 text-center"><div className="text-xl sm:text-2xl font-bold"><span className="text-ok">{successfulDays}</span> / <span className="text-bad">{failedDays}</span></div><div className="text-xs text-tx2">{tr('أيام النجاح')} / {tr('أيام الخسارة')}</div></div>
       </div>
       <p className="text-xs text-tx2">{tr('يبدأ الأسبوع يوم الإثنين وينتهي يوم الأحد.')}</p>
-      <button className="btn-p w-full" onClick={printReport}><Download size={16} />{tr('طباعة أو حفظ PDF')}</button>
+      <div className="grid grid-cols-2 gap-2">
+        <button className="btn-p px-2 text-sm" onClick={() => printReport('weekly')}><Download size={16} />{tr('التقرير الكامل PDF')}</button>
+        <button className="btn-g px-2 text-sm" onClick={() => printReport('expenses')}><Download size={16} />{tr('المصاريف فقط PDF')}</button>
+      </div>
       <p className="text-xs text-tx2 text-center">{tr('عند الطباعة اختر حفظ كملف PDF.')}</p>
     </section>
-    {createPortal(<WeeklyReport start={startKey} end={endKey} expenses={expenses} missions={missions} completedTasks={completedTasks} totalTasks={totalTasks} successfulDays={successfulDays} failedDays={failedDays} totalSpent={totalSpent} />, document.body)}
+    {createPortal(<><WeeklyReport start={startKey} end={endKey} expenses={expenses} missions={missions} completedTasks={completedTasks} totalTasks={totalTasks} successfulDays={successfulDays} failedDays={failedDays} totalSpent={totalSpent} /><ExpenseOnlyReport start={startKey} end={endKey} expenses={expenses} totalSpent={totalSpent} /></>, document.body)}
   </>;
 }
 

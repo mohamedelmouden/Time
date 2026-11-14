@@ -54,6 +54,14 @@ function useStore() {
       if (ex) return { ...d, dailyMissions: d.dailyMissions.map((m) => (m === ex ? { ...m, tasks: [...m.tasks, ...ts] } : m)) };
       return { ...d, dailyMissions: [...d.dailyMissions, { id: uid(), scheduledDate: date, tasks: ts, status: 'upcoming', createdAt: new Date().toISOString() }] };
     }),
+    addTodayTask: (title: string, description?: string) => up((d, t) => {
+      const label = title.trim();
+      if (!label) return d;
+      const task = { id: uid(), title: label, description: description?.trim() || undefined, completed: true };
+      const mission = d.dailyMissions.find((m) => m.scheduledDate === t);
+      if (mission) return { ...d, dailyMissions: d.dailyMissions.map((m) => m.id === mission.id ? { ...m, status: 'active', tasks: [...m.tasks, task] } : m) };
+      return { ...d, dailyMissions: [...d.dailyMissions, { id: uid(), scheduledDate: t, tasks: [task], status: 'active', createdAt: new Date().toISOString() }] };
+    }),
     /** Locked missions (today or past) are rejected here, in the data layer. */
     updateMission: (id: string, date: string, tasks: Draft[]) => up((d, t) => {
       const m = d.dailyMissions.find((x) => x.id === id);

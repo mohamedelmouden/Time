@@ -32,6 +32,28 @@ export function MissionSheet({ open, onClose, edit }: { open: boolean; onClose: 
   );
 }
 
+export function TodayTaskSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const s = useApp();
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  useEffect(() => { if (open) { setTitle(''); setDescription(''); } }, [open]);
+  const submit = () => {
+    if (!title.trim()) return;
+    s.addTodayTask(title, description);
+    onClose();
+  };
+  return (
+    <Sheet open={open} onClose={onClose} title={tr('أضف مهمة أنجزتها اليوم')}>
+      <div className="space-y-3">
+        <div><label className="text-sm text-tx2">{tr('عنوان المهمة')}</label><input autoFocus className="inp mt-1" placeholder={tr('مثال: ساعدت عائلتي')} value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submit(); }} /></div>
+        <div><label className="text-sm text-tx2">{tr('وصف (اختياري)')}</label><input className="inp mt-1" value={description} onChange={(e) => setDescription(e.target.value)} /></div>
+      </div>
+      <p className="text-xs text-tx2 mt-3">{tr('ستُضاف إلى مهام اليوم بحالة مكتملة.')}</p>
+      <button className="btn-p w-full mt-4 disabled:opacity-40" disabled={!title.trim()} onClick={submit}>{tr('أضفها إلى إنجازات اليوم')}</button>
+    </Sheet>
+  );
+}
+
 export function EventSheet({ open, onClose, edit }: { open: boolean; onClose: () => void; edit?: ImportantEvent | null }) {
   const s = useApp();
   const blank = { title: '', description: '', eventDate: s.today, eventTime: '', category: 'exam' as Category, priority: 'normal' as Priority };
