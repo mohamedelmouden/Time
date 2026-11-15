@@ -14,7 +14,9 @@ function useStore() {
   const [eff, setEff] = useState(effDay());
   const ref = useRef(data);
   ref.current = data;
-  applyLang(data.settings.lang);
+  // Apply language in an effect — not during render — to avoid DOM mutations
+  // that can trigger layout thrash on mobile browsers.
+  useEffect(() => { applyLang(data.settings.lang); }, [data.settings.lang]);
   useEffect(() => { save(data); }, [data]);
   useEffect(() => {
     const run = () => { const t = todayKey(); setToday(t); setEff(effDay()); setData((d) => sync(d, t)); };

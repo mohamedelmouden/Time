@@ -7,6 +7,10 @@ import './index.css';
 import App from './App';
 import { Provider } from './store';
 
+// Remove the inline loading indicator once React takes over.
+const loader = document.getElementById('flame-loader');
+if (loader) loader.remove();
+
 class StartupBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
   state = { hasError: false };
 
@@ -32,16 +36,36 @@ class StartupBoundary extends Component<{ children: ReactNode }, { hasError: boo
 createRoot(document.getElementById('root')!).render(<StartupBoundary><Provider><App /></Provider></StartupBoundary>);
 
 // Recover once from a deployment that replaced a cached JavaScript chunk.
+// Guard uses both sessionStorage (per-tab) and a timestamp to prevent loops
+// even when the tab is discarded and restored on mobile.
 window.addEventListener('vite:preloadError', (event) => {
   event.preventDefault();
   try {
-    if (sessionStorage.getItem('flame:preload-retry')) return;
-    sessionStorage.setItem('flame:preload-retry', '1');
-  } catch { /* storage may be unavailable */ }
+    const key = 'flame:preload-retry';
+    const prev = sessionStorage.getItem(key);
+    // If we already retried within the last 30 seconds, stop.
+    if (prev && Date.now() - Number(prev) < 30_000) return;
+    sessionStorage.setItem(key, String(Date.now()));
+  } catch { return; /* avoid a reload loop if storage is unavailable */ }
+  // Clear the SW cache so the reload fetches fresh assets.
+  caches.keys().then((ks) => Promise.all(ks.map((k) => caches.delete(k)))).catch(() => {});
   window.location.reload();
 });
-window.addEventListener('load', () => { try { sessionStorage.removeItem('flame:preload-retry'); } catch { /* storage may be unavailable */ } }, { once: true });
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    // Force the new SW to activate immediately if one is waiting.
+    navigator.serviceWorker.ready.then((reg) => {
+      if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        nw?.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            nw.postMessage({ type: 'SKIP_WAITING' });
+          }
+        });
+      });
+    }).catch(() => {});
+  });
 }
