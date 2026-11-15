@@ -9,6 +9,23 @@
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="icon.svg" />
     <title>FLAME</title>
+    <!--
+      Purge stale service-workers from older deployments.
+      This inline script runs before the app bundle so that a rogue SW
+      from a previous version can never block the fresh JS/CSS from loading.
+    -->
+    <script>
+      if('serviceWorker' in navigator){
+        navigator.serviceWorker.getRegistrations().then(function(rs){
+          rs.forEach(function(r){r.unregister()});
+        });
+        caches.keys().then(function(ks){
+          ks.forEach(function(k){
+            if(k.startsWith('flame-'))caches.delete(k);
+          });
+        });
+      }
+    </script>
   </head>
   <body style="background:#0B0D12;color:#F5F5F5">
     <div id="root">

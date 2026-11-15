@@ -9,7 +9,24 @@
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="icon.svg" />
     <title>FLAME</title>
-    <script type="module" crossorigin src="./assets/index-DaQRck7K.js"></script>
+    <!--
+      Purge stale service-workers from older deployments.
+      This inline script runs before the app bundle so that a rogue SW
+      from a previous version can never block the fresh JS/CSS from loading.
+    -->
+    <script>
+      if('serviceWorker' in navigator){
+        navigator.serviceWorker.getRegistrations().then(function(rs){
+          rs.forEach(function(r){r.unregister()});
+        });
+        caches.keys().then(function(ks){
+          ks.forEach(function(k){
+            if(k.startsWith('flame-'))caches.delete(k);
+          });
+        });
+      }
+    </script>
+    <script type="module" crossorigin src="./assets/index-_hFmCivQ.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-08GKSUdR.css">
   </head>
   <body style="background:#0B0D12;color:#F5F5F5">
